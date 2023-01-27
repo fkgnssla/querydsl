@@ -686,4 +686,47 @@ public class QuerydslBasicTest {
     public BooleanBuilder allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
+
+    @Test
+    public void bulkUpdate() {
+        //나이가 28살 초과인 회원의 이름 "비회원"으로 수정
+
+        //영속성 컨텍스트 | DB
+        //member1 = 10 -> DB member1
+        //member2 = 20 -> DB member2
+        //member3 = 30 -> DB member3
+        //member4 = 40 -> DB member4
+
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute(); //영향을 받은 row수가 반환된다.
+
+        //member1 = 10 -> DB 비회원
+        //member2 = 20 -> DB 비회원
+        //member3 = 30 -> DB member3
+        //member4 = 40 -> DB member4
+
+        em.flush(); em.clear(); //영속성 컨텍스트를 플러시 한 뒤 초기화
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    public void bulkAdd() {
+        //모든 회원의 나이 -1
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(-1))
+                .execute();
+    }
+
+    @Test
+    public void bulkDelete() {
+        //나이가 18살 미만인 회원 삭제
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.lt(18))
+                .execute();
+    }
 }
